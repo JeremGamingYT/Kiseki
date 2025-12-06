@@ -1,0 +1,103 @@
+# ============================================
+# KISEKI 600M Parameter Model Configuration
+# Designed for RTX 3090/4090 training
+# ============================================
+
+model:
+  name: "kiseki-600m"
+  
+  # Core dimensions
+  d_model: 1024
+  d_state: 64
+  d_conv: 4
+  expand_factor: 2
+  
+  # Architecture
+  n_layers: 24
+  n_heads: 16
+  
+  # Input/Output
+  latent_dim: 512
+  vocab_size: 8192
+  
+  # Flow matching
+  flow_time_embed_dim: 256
+  
+  # Regularization
+  dropout: 0.1
+  layer_norm_eps: 1.0e-5
+  
+  # Memory optimization
+  use_flash_attention: true
+  gradient_checkpointing: true
+
+# VAE Configuration
+vae:
+  img_size: 512
+  patch_size: 16
+  in_channels: 3
+  latent_dim: 512
+  hidden_dims: [64, 128, 256, 512]
+  
+# Training
+training:
+  batch_size: 8
+  gradient_accumulation: 4
+  effective_batch_size: 32
+  
+  # Optimizer
+  optimizer: "adamw"
+  learning_rate: 1.0e-4
+  weight_decay: 0.01
+  betas: [0.9, 0.95]
+  
+  # Schedule
+  warmup_steps: 1000
+  max_steps: 100000
+  lr_scheduler: "cosine"
+  
+  # Mixed precision
+  fp16: true
+  bf16: false  # Enable on Ampere+ GPUs
+  
+  # Gradient
+  max_grad_norm: 1.0
+  
+  # Self-improvement
+  self_improve:
+    enabled: true
+    quality_threshold: 0.7
+    synthetic_ratio: 0.2
+    update_interval: 100
+    buffer_size: 10000
+  
+  # Physics priors
+  physics:
+    enabled: true
+    hair_weight: 1.0
+    eye_weight: 1.0
+    motion_weight: 1.0
+
+# Data
+data:
+  index_path: "./data/ivq_index"
+  sequence_length: 64
+  num_workers: 4
+  prefetch_factor: 4
+  pin_memory: true
+
+# Logging
+logging:
+  log_interval: 10
+  save_interval: 1000
+  eval_interval: 500
+  wandb:
+    enabled: true
+    project: "kiseki"
+    name: "kiseki-600m"
+
+# Checkpointing
+checkpoint:
+  save_dir: "./checkpoints"
+  save_top_k: 3
+  resume_from: null

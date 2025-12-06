@@ -1,0 +1,110 @@
+# ============================================
+# KISEKI 1B Parameter Model Configuration
+# Maximum quality for RTX 4090 with optimizations
+# ============================================
+
+model:
+  name: "kiseki-1b"
+  
+  # Core dimensions (increased from 600M)
+  d_model: 1536
+  d_state: 128
+  d_conv: 4
+  expand_factor: 2
+  
+  # Architecture (deeper)
+  n_layers: 32
+  n_heads: 24
+  
+  # Input/Output
+  latent_dim: 512
+  vocab_size: 8192
+  
+  # Flow matching
+  flow_time_embed_dim: 384
+  
+  # Regularization
+  dropout: 0.1
+  layer_norm_eps: 1.0e-5
+  
+  # Memory optimization (essential for 1B)
+  use_flash_attention: true
+  gradient_checkpointing: true
+
+# VAE Configuration
+vae:
+  img_size: 512
+  patch_size: 16
+  in_channels: 3
+  latent_dim: 512
+  hidden_dims: [64, 128, 256, 512]
+
+# Training
+training:
+  batch_size: 4  # Reduced for memory
+  gradient_accumulation: 8
+  effective_batch_size: 32
+  
+  # Optimizer
+  optimizer: "adamw"
+  learning_rate: 5.0e-5  # Lower for stability
+  weight_decay: 0.01
+  betas: [0.9, 0.95]
+  
+  # Schedule
+  warmup_steps: 2000
+  max_steps: 150000
+  lr_scheduler: "cosine"
+  
+  # Mixed precision (required for 1B)
+  fp16: true
+  bf16: false
+  
+  # Gradient
+  max_grad_norm: 1.0
+  
+  # DeepSpeed (required for 1B)
+  deepspeed:
+    enabled: true
+    stage: 2
+    offload_optimizer: true
+    offload_param: false
+  
+  # Self-improvement
+  self_improve:
+    enabled: true
+    quality_threshold: 0.75
+    synthetic_ratio: 0.15
+    update_interval: 200
+    buffer_size: 8000
+  
+  # Physics priors
+  physics:
+    enabled: true
+    hair_weight: 1.0
+    eye_weight: 1.0
+    motion_weight: 1.0
+
+# Data
+data:
+  index_path: "./data/ivq_index"
+  sequence_length: 64
+  num_workers: 4
+  prefetch_factor: 2  # Reduced for memory
+  pin_memory: true
+
+# Logging
+logging:
+  log_interval: 10
+  save_interval: 500
+  eval_interval: 500
+  wandb:
+    enabled: true
+    project: "kiseki"
+    name: "kiseki-1b"
+
+# Checkpointing
+checkpoint:
+  save_dir: "./checkpoints"
+  save_top_k: 3
+  resume_from: null
